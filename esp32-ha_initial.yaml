@@ -64,16 +64,9 @@ font:
 # SPI bus for TFT display
 # -------------------------------------------------------------------
 spi:
-  - id: bus_display
-    clk_pin: GPIO7
-    mosi_pin: GPIO11
-
-  - id: bus_touch
-    clk_pin: GPIO12  # Versetzt auf freien Pin
- #   mosi_pin: GPIO13 # Versetzt auf freien Pin
-    miso_pin: GPIO9
-    
-
+  clk_pin: GPIO7
+  miso_pin: GPIO9
+  mosi_pin: GPIO11
   # interface: hardware  # optional, auto-selected on ESP32
 
 # -------------------------------------------------------------------
@@ -164,41 +157,37 @@ binary_sensor:
 # -------------------------------------------------------------------
 display:
   - platform: ili9xxx
-    spi_id: bus_display
     model: ILI9341
     invert_colors: false
 
     cs_pin: GPIO33
-    dc_pin: GPIO14 # War vorher GPIO34
+    dc_pin: GPIO34
     reset_pin: GPIO21
 
 # -------------------------------------------------------------------
 # Touchscreen configuration (XPT2046 Touch Screen Controller)
 # -------------------------------------------------------------------
-touchscreen:
-  id: my_touchscreen
-  platform: xpt2046
-  spi_id: bus_touch
-  cs_pin: GPIO5 # War vorher GPI012
-  interrupt_pin: GPIO3 # War vorher GPIO13
-  update_interval: 50ms
-  threshold: 400
-  transform:
-    mirror_x: true
-  calibration:
-    x_min: 280
-    x_max: 3860
-    y_min: 340
-    y_max: 3860
+#touchscreen:
+#  id: my_touchscreen
+#  platform: xpt2046
+#  cs_pin: GPIO12
+#  interrupt_pin: GPIO13
+#  update_interval: 500ms
+#  threshold: 400
+#  transform:
+#    mirror_x: true
+#  calibration:
+#    x_min: 280
+#    x_max: 3860
+#    y_min: 340
+#    y_max: 3860
 
 # -------------------------------------------------------------------
-# LVGL
+# LGL
 # -------------------------------------------------------------------
 lvgl:
-  
   pages:
     - id: room_page
-      bg_color: ${color_dark_grey}
       widgets:
         - button:
             id: btn_homeoffice
