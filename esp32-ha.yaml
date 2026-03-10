@@ -145,25 +145,121 @@ color:
  #   entity_id: number.thermostat_hc1_selected_room_temperature
  #   internal: true
 
+# -------------------------------------------------------------------
+# Global state (none needed for graphical_display_menu)
+# -------------------------------------------------------------------
+
+# -------------------------------------------------------------------
+# Rotary Encoder input (GPIO 15, 16, 17) - Manual implementation
+# -------------------------------------------------------------------
+
 binary_sensor:
+  # Rotary encoder A pin (CLK)
+  - platform: gpio
+    pin:
+      number: GPIO15
+      mode: INPUT_PULLUP
+    id: encoder_a
+    on_press:
+      then:
+        - lambda: |-
+            // Simple rotary encoder logic - check B pin state to determine direction
+            bool pin_b_state = id(encoder_b).state;
+            
+            if (pin_b_state) {
+              // Clockwise rotation - next menu item
+              id(rotary_menu).down();
+            } else {
+              // Counter-clockwise rotation - previous menu item
+              id(rotary_menu).up();
+            }
+
+  # Rotary encoder B pin (DT)
+  - platform: gpio
+    pin:
+      number: GPIO16
+      mode: INPUT_PULLUP
+    id: encoder_b
+
+  # Rotary encoder button (SW)
+  - platform: gpio
+    pin:
+      number: GPIO37
+      mode: INPUT_PULLUP
+    id: encoder_button
+    on_click:
+      then:
+        - display_menu.enter: rotary_menu
+
+  # Home Assistant switch status imports
   - platform: homeassistant
-    id: ha_sc_homeoffice
-    entity_id: switch.neue_szene_stateful_scene
-    publish_initial_state: true
+    id: ha_anwesenheit
+    entity_id: switch.anwesenheit
     on_state:
       then:
-        lvgl.widget.update:
-          id: btn_homeoffice
-          state:
-            checked: !lambda return x;
+        - lambda: |-
+            id(switch_anwesenheit).publish_state(x);
+  - platform: homeassistant
+    id: ha_fernseher
+    entity_id: switch.wozi_anlage_1
+    on_state:
+      then:
+        - lambda: |-
+            id(switch_fernseher).publish_state(x);
+  - platform: homeassistant
+    id: ha_babysitter
+    entity_id: input_boolean.babysitter
+    on_state:
+      then:
+        - lambda: |-
+            id(switch_babysitter).publish_state(x);
 
-
-
+switch:
+  - platform: template
+    id: switch_anwesenheit
+    optimistic: true
+    on_turn_on:
+      - homeassistant.action:
+          action: switch.turn_on
+          data:
+            entity_id: switch.anwesenheit
+    on_turn_off:
+      - homeassistant.action:
+          action: switch.turn_off
+          data:
+            entity_id: switch.anwesenheit
+  - platform: template
+    id: switch_fernseher
+    optimistic: true
+    on_turn_on:
+      - homeassistant.action:
+          action: switch.turn_on
+          data:
+            entity_id: switch.wozi_anlage_1
+    on_turn_off:
+      - homeassistant.action:
+          action: switch.turn_off
+          data:
+            entity_id: switch.wozi_anlage_1
+  - platform: template
+    id: switch_babysitter
+    optimistic: true
+    on_turn_on:
+      - homeassistant.action:
+          action: input_boolean.turn_on
+          data:
+            entity_id: input_boolean.babysitter
+    on_turn_off:
+      - homeassistant.action:
+          action: input_boolean.turn_off
+          data:
+            entity_id: input_boolean.babysitter
 # -------------------------------------------------------------------
 # Display configuration (ILI9341 TFT)
 # -------------------------------------------------------------------
 display:
   - platform: ili9xxx
+    id: my_display
     spi_id: bus_display
     model: ILI9341
     invert_colors: false
@@ -171,6 +267,8 @@ display:
     cs_pin: GPIO33
     dc_pin: GPIO14 # War vorher GPIO34
     reset_pin: GPIO21
+    lambda: |-
+      it.menu(0, 0, id(rotary_menu), it.get_width(), it.get_height());
 
 # -------------------------------------------------------------------
 # Touchscreen configuration (XPT2046 Touch Screen Controller)
@@ -192,31 +290,24 @@ touchscreen:
     y_max: 3860
 
 # -------------------------------------------------------------------
-# LVGL
+# Graphical Display Menu
 # -------------------------------------------------------------------
-lvgl:
-  
-  pages:
-    - id: room_page
-      bg_color: ${color_dark_grey}
-      widgets:
-        - button:
-            id: btn_homeoffice
-            x: 20  # Leftmost position
-            y: 20
-            #styles: style_mode_button
-            widgets:
-              - label:
-                  #styles: style_menu_button
-                  text: "Homeoffice"
-                  text_color: ${color_white}
-                  #checkable: true
-            on_click:
-               - homeassistant.action:
-                    action: switch.toggle
-                    data:
-                      entity_id: switch.neue_szene_stateful_scene
-                
+graphical_display_menu:
+  - id: rotary_menu
+    display: my_display
+    font: roboto_reg
+    active: true
+    mode: rotary
+    items:
+      - type: switch
+        text: "Anwesenheit"
+        switch: switch_anwesenheit
+      - type: switch
+        text: "Fernseher"
+        switch: switch_fernseher
+      - type: switch
+        text: "Babysitter"
+        switch: switch_babysitter
 
 
 
