@@ -53,12 +53,9 @@ font:
   # gfonts://family[@weight]
   - file: "gfonts://Roboto"
     id: roboto_reg
-    size: 18
+    size: 34
     bpp: 4
 
-  - file: "gfonts://Roboto"
-    id: font_2
-    size: 36
 
 # -------------------------------------------------------------------
 # SPI bus for TFT display
@@ -67,14 +64,6 @@ spi:
   - id: bus_display
     clk_pin: GPIO7
     mosi_pin: GPIO11
-
-  - id: bus_touch
-    clk_pin: GPIO12  # Versetzt auf freien Pin
- #   mosi_pin: GPIO13 # Versetzt auf freien Pin
-    miso_pin: GPIO9
-    
-
-  # interface: hardware  # optional, auto-selected on ESP32
 
 # -------------------------------------------------------------------
 # Backlight PWM output
@@ -92,101 +81,43 @@ light:
     id: back_light
     restore_mode: ALWAYS_ON
 
-# -------------------------------------------------------------------
-# Custom colors for display rendering
-# -------------------------------------------------------------------
-substitutions:
- # Colors common
-  color_white: "0xFFFFFF"
-  color_grey: "0xa5a5a5"
-  color_dark_grey: "0x282828"
-  color_darker_grey: "0x212121"
-  color_light_grey: "0x444444"
-  color_accent: "0x18bcf2"
-  color_warning: "0xd2691e"
-  color_success: "0x7fff00"
-  # Mode colors
-  color_auto: "0x2fd1c5"
-  color_cool: "0x00bfff"
-  color_heat: "0xff1493"
-  color_dry: "0xff8c00"
-  color_fan: "0x87ceeb"
-  # Temperature colors
-  color_temp_current: "0x35ffe6"
-  color_temp_set: "0x51a0e4"
-  color_temp_ticks: "0x585858"
-
-
-color:
-  - id: my_red
-    red: 100%
-    green: 3%
-    blue: 5%
-
-  - id: black
-    red: 0%
-    green: 0%
-    blue: 0%
-
-
-# -------------------------------------------------------------------
-# Home Assistant entity imports
-# -------------------------------------------------------------------
-#number:
-  # Actual room temperature (sensor)
- # - platform: homeassistant
- ##   id: wohnzimmer_temp
- #   entity_id: sensor.temperaturesensor_28_2167_36f3_781e
- #   internal: true
-
-  # Thermostat target temperature
- # - platform: homeassistant
- #   id: buderus_temp
- #   entity_id: number.thermostat_hc1_selected_room_temperature
- #   internal: true
-
-# -------------------------------------------------------------------
-# Global state (none needed for graphical_display_menu)
-# -------------------------------------------------------------------
 
 # -------------------------------------------------------------------
 # Rotary Encoder input (GPIO 15, 16, 17) - Manual implementation
 # -------------------------------------------------------------------
 
-binary_sensor:
-  # Rotary encoder A pin (CLK)
-  - platform: gpio
-    pin:
-      number: GPIO15
+sensor:
+  - platform: rotary_encoder
+    name: "Rotary Encoder"
+    filters:
+      debounce: 30ms
+    pin_a: 
+      number: GPIO40
       mode: INPUT_PULLUP
-    id: encoder_a
-    on_press:
-      then:
-        - lambda: |-
-            // Simple rotary encoder logic - check B pin state to determine direction
-            bool pin_b_state = id(encoder_b).state;
-            
-            if (pin_b_state) {
-              // Clockwise rotation - next menu item
-              id(rotary_menu).down();
-            } else {
-              // Counter-clockwise rotation - previous menu item
-              id(rotary_menu).up();
-            }
+      inverted: true
+    pin_b: 
+      number: GPIO38
+      mode: INPUT_PULLUP
+      inverted: true
+    on_clockwise:
+      - display_menu.up: rotary_menu
+    on_anticlockwise:
+      - display_menu.down: rotary_menu
 
-  # Rotary encoder B pin (DT)
-  - platform: gpio
-    pin:
-      number: GPIO16
-      mode: INPUT_PULLUP
-    id: encoder_b
+
+binary_sensor:
+
 
   # Rotary encoder button (SW)
   - platform: gpio
     pin:
       number: GPIO37
       mode: INPUT_PULLUP
+      inverted: true
     id: encoder_button
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
     on_click:
       then:
         - display_menu.enter: rotary_menu
@@ -270,24 +201,7 @@ display:
     lambda: |-
       it.menu(0, 0, id(rotary_menu), it.get_width(), it.get_height());
 
-# -------------------------------------------------------------------
-# Touchscreen configuration (XPT2046 Touch Screen Controller)
-# -------------------------------------------------------------------
-touchscreen:
-  id: my_touchscreen
-  platform: xpt2046
-  spi_id: bus_touch
-  cs_pin: GPIO5 # War vorher GPI012
-  interrupt_pin: GPIO3 # War vorher GPIO13
-  update_interval: 50ms
-  threshold: 400
-  transform:
-    mirror_x: true
-  calibration:
-    x_min: 280
-    x_max: 3860
-    y_min: 340
-    y_max: 3860
+
 
 # -------------------------------------------------------------------
 # Graphical Display Menu
@@ -299,13 +213,16 @@ graphical_display_menu:
     active: true
     mode: rotary
     items:
+ #     - type: switch
+ #       immediate_edit: true
+ #       text: "Anwesenheit"
+ #       switch: switch_anwesenheit
       - type: switch
-        text: "Anwesenheit"
-        switch: switch_anwesenheit
-      - type: switch
+        immediate_edit: true
         text: "Fernseher"
         switch: switch_fernseher
-      - type: switch
+      - type: switch  
+        immediate_edit: true  
         text: "Babysitter"
         switch: switch_babysitter
 
