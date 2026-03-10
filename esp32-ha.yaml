@@ -211,6 +211,12 @@ lvgl:
                   text: "Homeoffice"
                   text_color: ${color_white}
                   #checkable: true
+            on_click:
+               - homeassistant.action:
+                    action: switch.toggle
+                    data:
+                      entity_id: switch.neue_szene_stateful_scene
+                
 
 
 
