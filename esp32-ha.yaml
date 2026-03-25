@@ -219,7 +219,7 @@ graphical_display_menu:
  #       switch: switch_anwesenheit
       - type: switch
         immediate_edit: true
-        text: "Fernseher"
+        text: "Anlage"
         switch: switch_fernseher
       - type: switch  
         immediate_edit: true  
