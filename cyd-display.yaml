@@ -147,10 +147,11 @@ display:
     update_interval: never
     transform:
       swap_xy: true
-      mirror_x: true
+      mirror_x: false
       mirror_y: false
     dimensions:
       width: 240
+
       height: 320
 
 time:
@@ -516,6 +517,7 @@ script:
 lvgl:
   displays:
     - my_display
+  rotation: 180
   touchscreens:
     - touchscreen_id: my_touchscreen
   bg_color: bg_color
@@ -724,8 +726,8 @@ touchscreen:
     y_max: 3835
   transform:
     swap_xy: false
-    mirror_x: true
-    mirror_y: false
+    mirror_x: false
+    mirror_y: true
   on_touch:
     then:
       - script.execute: wake_display
