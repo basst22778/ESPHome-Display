@@ -145,10 +145,13 @@ display:
     invert_colors: false
     color_palette: 8BIT
     update_interval: never
-    rotation: 90
+    transform:
+      swap_xy: true
+      mirror_x: true
+      mirror_y: false
     dimensions:
-      width: 320
-      height: 240
+      width: 240
+      height: 320
 
 time:
   - platform: homeassistant
