@@ -105,10 +105,7 @@ script:
 # ──────────────────────────────────────────────
 #  Garagentor – Cover-Entität für Home Assistant
 #
-#  Sicherheitslogik:
-#    open/close  → nur ausführen wenn Tor still steht (IDLE),
-#                  d.h. kein Befehl während Öffnen oder Schließen
-#    stop        → immer ausführen
+#  stop → immer ausführen
 # ──────────────────────────────────────────────
 cover:
   - platform: feedback
@@ -117,18 +114,10 @@ cover:
     id: gate_1
 
     open_action:
-      - if:
-          condition:
-            lambda: 'return id(gate_1).current_operation == esphome::cover::COVER_OPERATION_IDLE;'
-          then:
-            - switch.turn_on: r1
+      - switch.turn_on: r1
 
     close_action:
-      - if:
-          condition:
-            lambda: 'return id(gate_1).current_operation == esphome::cover::COVER_OPERATION_IDLE;'
-          then:
-            - switch.turn_on: r1
+      - switch.turn_on: r1
 
     stop_action:
       - switch.turn_on: r1
