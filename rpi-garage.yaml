@@ -1,0 +1,141 @@
+esphome:
+  name: "rpi-garage"
+  friendly_name: rpi-garage
+  min_version: 2025.9.0
+  name_add_mac_suffix: false
+
+rp2040:
+  board: rpipicow
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+
+# ──────────────────────────────────────────────
+#  Relay – steuert Tor-Motor (Impuls 800 ms)
+# ──────────────────────────────────────────────
+switch:
+  - platform: gpio
+    pin: 28
+    name: "Relay"
+    restore_mode: always_off
+    id: r1
+    on_turn_on:
+      - delay: 800ms
+      - switch.turn_off: r1
+
+
+# ──────────────────────────────────────────────
+#  Endschalter – melden ob Tor offen/geschlossen
+# ──────────────────────────────────────────────
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 03
+      mode: INPUT_PULLUP
+      inverted: true
+    id: endstop_opened
+    name: gate_opened
+    filters:
+      - delayed_on: 100ms
+    on_press:
+      # Tor hat vollständig geöffnet → Auto-Close-Timer starten
+      - script.execute: auto_close
+
+  - platform: gpio
+    pin:
+      number: 02
+      mode: INPUT_PULLUP
+      inverted: true
+    id: endstop_closed
+    name: gate_closed
+    filters:
+      - delayed_on: 100ms
+    on_press:
+      # Tor erfolgreich geschlossen → Auto-Close-Timer abbrechen
+      - script.stop: auto_close
+
+  - platform: status
+    name: "Status"
+
+
+# ──────────────────────────────────────────────
+#  Auto-Close – schließt Tor nach 5 min automatisch
+#
+#  Ablauf:
+#    1. Warten 5 min nach vollständigem Öffnen
+#    2. Solange endstop_closed nicht aktiv:
+#       → close-Befehl senden, 1 min warten, erneut prüfen
+#    → Script endet sobald Tor geschlossen (endstop_closed)
+#       oder manuell abgebrochen wird
+#
+#  mode: restart → Timer wird neu gestartet wenn Tor erneut öffnet
+# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────
+#  Button – Auto-Close manuell aus HA abbrechen
+# ──────────────────────────────────────────────
+button:
+  - platform: template
+    name: "Auto-Close abbrechen"
+    on_press:
+      - script.stop: auto_close
+
+
+script:
+  - id: auto_close
+    mode: restart
+    then:
+      - delay: 5min
+      - while:
+          condition:
+            binary_sensor.is_off: endstop_closed
+          then:
+            - cover.close: gate_1
+            - delay: 1min
+
+
+# ──────────────────────────────────────────────
+#  Garagentor – Cover-Entität für Home Assistant
+#
+#  Sicherheitslogik:
+#    open/close  → nur ausführen wenn Tor still steht (IDLE),
+#                  d.h. kein Befehl während Öffnen oder Schließen
+#    stop        → immer ausführen
+# ──────────────────────────────────────────────
+cover:
+  - platform: feedback
+    name: "Garagentor"
+    device_class: garage
+    id: gate_1
+
+    open_action:
+      - if:
+          condition:
+            lambda: 'return id(gate_1).current_operation == esphome::cover::COVER_OPERATION_IDLE;'
+          then:
+            - switch.turn_on: r1
+
+    close_action:
+      - if:
+          condition:
+            lambda: 'return id(gate_1).current_operation == esphome::cover::COVER_OPERATION_IDLE;'
+          then:
+            - switch.turn_on: r1
+
+    stop_action:
+      - switch.turn_on: r1
+
+    open_endstop: endstop_opened
+    close_endstop: endstop_closed
+    open_duration: 16s
+    close_duration: 16s
+    max_duration: 30s
+    has_built_in_endstop: true
