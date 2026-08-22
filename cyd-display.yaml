@@ -22,9 +22,12 @@ esp32:
 logger:
 
 api:
+  encryption:
+    key: !secret cyd__encryption_key
 
 ota:
   - platform: esphome
+    password: !secret cyd__ota_password
 
 wifi:
   ssid: !secret wifi_ssid
@@ -68,52 +71,62 @@ font:
 
 # MDI-Icons: Statusleiste (20x20), Tiles (48x48)
 image:
-  - file: mdi:home-account
+  - platform: file
+    file: mdi:home-account
     id: icon_anwesenheit
     type: grayscale
     transparency: alpha_channel
     resize: 20x20
-  - file: mdi:home-export-outline
+  - platform: file
+    file: mdi:home-export-outline
     id: icon_anwesenheit_away
     type: grayscale
     transparency: alpha_channel
     resize: 20x20
-  - file: mdi:thermometer
+  - platform: file
+    file: mdi:thermometer
     id: icon_temperature
     type: grayscale
     transparency: alpha_channel
     resize: 20x20
-  - file: mdi:clock-outline
+  - platform: file
+    file: mdi:clock-outline
     id: icon_clock
     type: grayscale
     transparency: alpha_channel
     resize: 20x20
-  - file: mdi:lightbulb-multiple-outline
+  - platform: file
+    file: mdi:lightbulb-multiple-outline
     id: icon_hintergrundlicht
     type: grayscale
     transparency: alpha_channel
     resize: 48x48
-  - file: mdi:baby-carriage
+  - platform: file
+    file: mdi:baby-carriage
     id: icon_babysitter
     type: grayscale
     transparency: alpha_channel
     resize: 48x48
-  - file: mdi:speaker
+  - platform: file
+    file: mdi:speaker
     id: icon_anlage
     type: grayscale
     transparency: alpha_channel
     resize: 48x48
-  - file: mdi:ceiling-light
+  - platform: file
+    file: mdi:ceiling-light
     id: icon_deckenlampe
     type: grayscale
     transparency: alpha_channel
     resize: 48x48
-  - file: mdi:floor-lamp
+  - platform: file
+    file: mdi:floor-lamp
     id: icon_stehlampe
     type: grayscale
     transparency: alpha_channel
     resize: 48x48
-  - file: mdi:lamp
+  - platform: file
+    file: mdi:lamp
     id: icon_tischlampe
     type: grayscale
     transparency: alpha_channel
@@ -166,6 +179,8 @@ display:
     dimensions:
       width: 240
       height: 320
+      pad_width: 0
+      pad_height: 0
     # swap_xy dreht auf Querformat; LVGL rotation: 180 korrigiert die Ausrichtung
     transform:
       swap_xy: true

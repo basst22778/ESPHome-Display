@@ -4,7 +4,7 @@ esphome:
   min_version: 2025.9.0
   name_add_mac_suffix: false
 
-rp2040:
+rp2:
   board: rpipicow
 
 logger:

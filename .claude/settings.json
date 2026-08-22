@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pipx list *)",
+      "Bash(python3 -m pip index versions esphome)",
+      "Bash(pipx upgrade *)",
+      "Bash(mkdir -p /private/tmp/claude-501/-Users-basst-Documents-GIT-ESPHome-Display/fb983d83-f8b1-4b9f-9da9-a226c93a79b5/scratchpad)",
+      "Bash(ls /dev/tty.* /dev/cu.* 2>/dev/null)",
+      "Read(//dev/**)",
+      "Bash(esphome upload *)",
+      "Bash(cmake --version)",
+      "Bash(ninja --version)",
+      "Bash(find / -maxdepth 4 -iname \"*.espressif*\")",
+      "Bash(find / -maxdepth 6 -iname \"*xtensa-esp32*\")",
+      "Bash(find / -maxdepth 6 -iname \"idf.py\")",
+      "Bash(/Users/basst/.local/pipx/venvs/esphome/bin/pip list *)"
+    ]
+  }
+}
